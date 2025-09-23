@@ -1,5 +1,6 @@
 import requests
 
+from datetime import date, datetime
 from pathlib import Path
 from dotenv import load_dotenv, dotenv_values
 
@@ -21,6 +22,13 @@ def estimate_calories_burned(base_url, exercise_url, exercise, config):
     calories = requests.post(url, headers=header, json=params)
     return calories.json()
 
+def format_data(calories_burned):
+    exercise = calories_burned['exercises'][0]['name']
+    duration = calories_burned['exercises'][0]['duration_min']
+    calories = calories_burned['exercises'][0]['nf_calories']
+    data = [exercise, duration, calories]
+    return data
+
 def main():
     env_path = Path(".env")
     load_dotenv(dotenv_path=env_path)
@@ -30,10 +38,45 @@ def main():
     base_url = config["HOST_DOMAIN"]
     exercise_url = config["EXERCISE_ENDPOINT"]
 
+    today = date.today().strftime("%Y-%m-%d")
+
+    # --- user input ---
     exercise = input("Tell me which exercise you did: ")
 
+    while True:
+        exercise_time_input = input("Tell me when you did it (hh:mm): ")
+        try:
+            # Parse input as hh:mm
+            exercise_time = datetime.strptime(exercise_time_input, "%H:%M").time()
+            # Format as hh:mm:ss by adding :00 seconds
+            exercise_time_str = exercise_time.strftime("%H:%M:%S")
+            break
+        except ValueError:
+            print("Invalid format. Try again (e.g., 14:30)")
+
     calories_burned = estimate_calories_burned(base_url, exercise_url, exercise, config)
-    print(calories_burned)
+    exercise_data = format_data(calories_burned)  # ['Exercise', 'Duration', 'Calories']
+    data = [today, exercise_time_str, *exercise_data]
+    print(data)
+
+   # TODO: send data to google sheets
+
+    # --- Data Structure  ---
+    # ['Date', 'Time', 'Exercise', 'Duration', 'Calories']
+    # ['21/07/2020', '15:00:00', 'Running', '22', '130']
+
+
+    # --- Example: Write Data (uncomment to enable) ---
+    # print("\n--- Appending a new row to the worksheet ---")
+    # new_workout_entry = ["2023-10-27", "Running", "30 mins", "5km"]
+    # worksheet.append_row(new_workout_entry)
+    # print(f"Appended: {new_workout_entry}")
+    #
+    # # You can verify by checking your Google Sheet or by re-reading:
+    # print("\n--- Data after appending ---")
+    # print(worksheet.get_all_values())
+
+
 
 if __name__ == "__main__":
     main()
