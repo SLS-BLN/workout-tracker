@@ -54,3 +54,9 @@ except Exception as e:
     print(f"An unexpected error occurred: {e}")
     print("Please check your spreadsheet ID, worksheet name, and service account permissions.")
 
+def connect_to_sheets(creds_path: str = "secrets/service_account_key.json") -> gspread.Worksheet:
+    config = dotenv_values(".env")
+    spreadsheet_id = config["SPREADSHEET_ID"]
+
+    gc = gspread.service_account(filename=creds_path)
+    return gc.open_by_key(spreadsheet_id).sheet1
