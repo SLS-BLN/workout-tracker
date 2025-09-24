@@ -35,27 +35,17 @@ try:
     # Select the specific worksheet (tab) within the spreadsheet
     worksheet = spreadsheet.worksheet(WORKSHEET_NAME)
 
-    # --- Example: Read Data ---
-    print(f"Successfully connected to spreadsheet ID '{SPREADSHEET_ID}' and worksheet '{WORKSHEET_NAME}'.")
-    print("\n--- Retrieving all data from the worksheet ---")
-
-    all_data = worksheet.get_all_values()  # Get all cells as a list of lists
-
-    if all_data:
-        for row in all_data:
-            print(row)
-    else:
-        print("Worksheet is empty or no data found.")
-
-    # --- Example: Write Data (uncomment to enable) ---
-    # print("\n--- Appending a new row to the worksheet ---")
-    # new_workout_entry = ["2023-10-27", "Running", "30 mins", "5km"]
-    # worksheet.append_row(new_workout_entry)
-    # print(f"Appended: {new_workout_entry}")
+    # --- Read Data ---
+    # print(f"Successfully connected to spreadsheet ID '{SPREADSHEET_ID}' and worksheet '{WORKSHEET_NAME}'.")
+    # print("\n--- Retrieving all data from the worksheet ---")
     #
-    # # You can verify by checking your Google Sheet or by re-reading:
-    # print("\n--- Data after appending ---")
-    # print(worksheet.get_all_values())
+    # all_data = worksheet.get_all_values()  # Get all cells as a list of lists
+    #
+    # if all_data:
+    #     for row in all_data:
+    #         print(row)
+    # else:
+    #     print("Worksheet is empty or no data found.")
 
 except FileNotFoundError:
     print(f"Error: Service account key file not found at '{SERVICE_ACCOUNT_FILE}'")

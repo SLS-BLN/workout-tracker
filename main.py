@@ -4,6 +4,9 @@ from datetime import date, datetime
 from pathlib import Path
 from dotenv import load_dotenv, dotenv_values
 
+from connect_sheets import worksheet
+
+
 def estimate_calories_burned(base_url, exercise_url, exercise, config):
     url = f"{base_url}{exercise_url}"
 
@@ -40,7 +43,6 @@ def main():
 
     today = date.today().strftime("%Y-%m-%d")
 
-    # --- user input ---
     exercise = input("Tell me which exercise you did: ")
 
     while True:
@@ -56,27 +58,8 @@ def main():
 
     calories_burned = estimate_calories_burned(base_url, exercise_url, exercise, config)
     exercise_data = format_data(calories_burned)  # ['Exercise', 'Duration', 'Calories']
-    data = [today, exercise_time_str, *exercise_data]
-    print(data)
-
-   # TODO: send data to google sheets
-
-    # --- Data Structure  ---
-    # ['Date', 'Time', 'Exercise', 'Duration', 'Calories']
-    # ['21/07/2020', '15:00:00', 'Running', '22', '130']
-
-
-    # --- Example: Write Data (uncomment to enable) ---
-    # print("\n--- Appending a new row to the worksheet ---")
-    # new_workout_entry = ["2023-10-27", "Running", "30 mins", "5km"]
-    # worksheet.append_row(new_workout_entry)
-    # print(f"Appended: {new_workout_entry}")
-    #
-    # # You can verify by checking your Google Sheet or by re-reading:
-    # print("\n--- Data after appending ---")
-    # print(worksheet.get_all_values())
-
-
+    new_workout_entry = [today, exercise_time_str, *exercise_data]
+    worksheet.append_row(new_workout_entry)
 
 if __name__ == "__main__":
     main()
