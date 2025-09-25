@@ -7,9 +7,14 @@ def load_config():
     return dotenv_values(".env")
 
 def get_user_input() -> str:
+    # TODO: Validate that input includes both activity and duration;
+    #  note that vague input like 'run' may trigger API defaults (e.g., 'running', 30 min)
     return input("Enter your workout (e.g., 'walking 30 min'): ").strip()
 
+
 def get_user_time() -> str:
+    # TODO: Improve validation – input must match hh:mm format and represent
+    #  a realistic time (e.g., '25:99' should fail, but '00:00' is technically valid)
     while True:
         time_input = input("Enter the time you did it (hh:mm): ").strip()
         try:
@@ -33,8 +38,16 @@ def estimate_calories_burned(exercise: str, config: dict) -> dict:
     return response.json()
 
 def format_data(calories_burned: dict) -> list:
-    ex = calories_burned['exercises'][0]
-    return [ex['name'], ex['duration_min'], ex['nf_calories']]
+    # TODO: Validate API response structure before accessing keys
+    try:
+        exercises = calories_burned.get("exercises", [])
+        if not exercises:
+            raise ValueError("No exercises found in response.")
+        ex = exercises[0]
+        return [ex.get("name", "unknown"), ex.get("duration_min", 0), ex.get("nf_calories", 0)]
+    except (TypeError, ValueError) as e:
+        print(f"Error formatting data: {e}")
+        return ["invalid", 0, 0]
 
 def log_workout():
     config = load_config()
