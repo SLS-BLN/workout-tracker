@@ -3,11 +3,7 @@ import requests
 
 from datetime import datetime, date
 from connect_sheets import connect_to_sheets
-from dotenv import dotenv_values
-
-
-def load_config():
-    return dotenv_values(".env")
+from config import load_config
 
 def get_user_input() -> str:
     # TODO: Validate that input includes both activity and duration;
