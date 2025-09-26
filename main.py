@@ -1,7 +1,10 @@
+import re
+import requests
+
 from datetime import datetime, date
 from connect_sheets import connect_to_sheets
 from dotenv import dotenv_values
-import requests
+
 
 def load_config():
     return dotenv_values(".env")
@@ -11,16 +14,18 @@ def get_user_input() -> str:
     #  note that vague input like 'run' may trigger API defaults (e.g., 'running', 30 min)
     return input("Enter your workout (e.g., 'walking 30 min'): ").strip()
 
+def get_user_time() -> str | None:
+    # Accepts either hh:mm or hh.mm format, with valid 24-hour time
+    pattern = r"^(?:[01]\d|2[0-3])[:.][0-5]\d$"
 
-def get_user_time() -> str:
-    # TODO: Improve validation – input must match hh:mm format and represent
-    #  a realistic time (e.g., '25:99' should fail, but '00:00' is technically valid)
     while True:
-        time_input = input("Enter the time you did it (hh:mm): ").strip()
-        try:
-            return datetime.strptime(time_input, "%H:%M").strftime("%H:%M:%S")
-        except ValueError:
-            print("Invalid format. Try again (e.g., 14:30)")
+        time_input = input("Enter the time you did it (hh:mm or hh.mm): ").strip()
+        if not re.match(pattern, time_input):
+            print("Invalid format. Try again (e.g., 14:30 or 14.30)")
+            continue
+        # Normalize to colon for parsing
+        time_input = time_input.replace(".", ":")
+        return datetime.strptime(time_input, "%H:%M").strftime("%H:%M:%S")
 
 def estimate_calories_burned(exercise: str, config: dict) -> dict:
     url = f"{config['HOST_DOMAIN']}{config['EXERCISE_ENDPOINT']}"
