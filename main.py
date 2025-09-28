@@ -1,9 +1,30 @@
 import re
+from locale import normalize
+
 import requests
 
 from datetime import datetime, date
 from connect_sheets import connect_to_sheets
 from config import load_config
+
+# --- validators and transformers ---
+def is_valid_time_format(t: str) -> bool:
+    return bool(re.match(r"^(?:[01]\d|2[0-3])[:.][0-5]\d$", t))
+
+def normalize_time(time_str: str) -> str:
+    return datetime.strptime(time_str, "%H:%M").strftime("%H:%M:%S")
+
+def format_data(calories_burned: dict) -> list:
+    # TODO: Validate API response structure before accessing keys
+    try:
+        exercises = calories_burned.get("exercises", [])
+        if not exercises:
+            raise ValueError("No exercises found in response.")
+        ex = exercises[0]
+        return [ex.get("name", "unknown"), ex.get("duration_min", 0), ex.get("nf_calories", 0)]
+    except (TypeError, ValueError) as e:
+        print(f"Error formatting data: {e}")
+        return ["invalid", 0, 0]
 
 def get_user_input() -> str:
     # TODO: Validate that input includes both activity and duration;
@@ -11,17 +32,11 @@ def get_user_input() -> str:
     return input("Enter your workout (e.g., 'walking 30 min'): ").strip()
 
 def get_user_time() -> str | None:
-    # Accepts either hh:mm or hh.mm format, with valid 24-hour time
-    pattern = r"^(?:[01]\d|2[0-3])[:.][0-5]\d$"
-
     while True:
         time_input = input("Enter the time you did it (hh:mm or hh.mm): ").strip()
-        if not re.match(pattern, time_input):
-            print("Invalid format. Try again (e.g., 14:30 or 14.30)")
-            continue
-        # Normalize to colon for parsing
-        time_input = time_input.replace(".", ":")
-        return datetime.strptime(time_input, "%H:%M").strftime("%H:%M:%S")
+        if is_valid_time_format(time_input):
+            return normalize_time(time_input)
+        print("Invalid format. Try again (e.g., 14:30 or 14.30)")
 
 def estimate_calories_burned(exercise: str, config: dict) -> dict:
     url = f"{config['HOST_DOMAIN']}{config['EXERCISE_ENDPOINT']}"
@@ -37,18 +52,6 @@ def estimate_calories_burned(exercise: str, config: dict) -> dict:
     }
     response = requests.post(url, headers=headers, json=params)
     return response.json()
-
-def format_data(calories_burned: dict) -> list:
-    # TODO: Validate API response structure before accessing keys
-    try:
-        exercises = calories_burned.get("exercises", [])
-        if not exercises:
-            raise ValueError("No exercises found in response.")
-        ex = exercises[0]
-        return [ex.get("name", "unknown"), ex.get("duration_min", 0), ex.get("nf_calories", 0)]
-    except (TypeError, ValueError) as e:
-        print(f"Error formatting data: {e}")
-        return ["invalid", 0, 0]
 
 def log_workout():
     config = load_config()
